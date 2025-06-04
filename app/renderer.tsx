@@ -6,7 +6,7 @@ import './styles/app.css'
 
 ReactDOM.createRoot(document.getElementById('app') as HTMLElement).render(
   <React.StrictMode>
-    <WindowContextProvider titlebar={{ title: 'Electron React App',  menuItems }}>
+    <WindowContextProvider titlebar={{ title: 'tilt',  menuItems }}>
       <App />
     </WindowContextProvider>
   </React.StrictMode>
