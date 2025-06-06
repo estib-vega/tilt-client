@@ -1,5 +1,6 @@
 import React from 'react';
 import { TiltAgent } from './agent';
+import { usePersistedState } from '../persistance';
 
 /**
  * Custom hook to manage the TiltAgent instance.
@@ -25,25 +26,12 @@ export function useAgent(apiKey: string | undefined): TiltAgent | null {
   return agentRef.current;
 }
 
+const API_KEY_STORARGE_KEY = 'apiKey';
 /**
  * Custom hook to manage the API key.
  *
  * Will persist the API key in localStorage
  */
 export function useApiKey(): [string, (value: string) => void] {
-  const [apiKey, setApiKey] = React.useState<string>('');
-
-  React.useEffect(() => {
-    const key = localStorage.getItem('apiKey');
-    if (key) {
-      setApiKey(key);
-    }
-  }, []);
-
-  const handleApiKeyChange = (newApiKey: string) => {
-    setApiKey(newApiKey);
-    localStorage.setItem('apiKey', newApiKey);
-  };
-
-  return [apiKey, handleApiKeyChange];
+  return usePersistedState(API_KEY_STORARGE_KEY);
 }
