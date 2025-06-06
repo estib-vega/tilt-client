@@ -1,6 +1,7 @@
 import React from 'react';
 import { TiltAgent } from './agent';
 import { usePersistedState } from '../persistance';
+import { MCPHost } from './mcp';
 
 /**
  * Custom hook to manage the TiltAgent instance.
@@ -24,6 +25,31 @@ export function useAgent(apiKey: string | undefined): TiltAgent | null {
   }, [apiKey]);
 
   return agentRef.current;
+}
+
+/**
+ * Custom hook to manage the MCPHost instance.
+ *
+ * This hook initializes a MCPHost instance when the component mounts
+ * and cleans it up when the component unmounts.
+ */
+export function useMCPHost(): MCPHost | null {
+  const mcpHostRef = React.useRef<MCPHost | null>(null);
+  const [, flushUpdate] = React.useReducer((x) => x + 1, 0);
+
+  React.useEffect(() => {
+    if (!mcpHostRef.current) {
+      mcpHostRef.current = new MCPHost();
+      mcpHostRef.current.init().then(() => {
+        flushUpdate();
+      });
+    }
+    return () => {
+      mcpHostRef.current = null;
+    };
+  }, []);
+
+  return mcpHostRef.current;
 }
 
 const API_KEY_STORARGE_KEY = 'apiKey';

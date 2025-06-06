@@ -3,7 +3,7 @@ import os from 'os';
 import MCPHost, { MCPClientDescription } from '../ai/mcp';
 
 const handleIPC = (channel: string, handler: (...args: any[]) => void) => {
-  ipcMain.handle(channel, handler);
+  ipcMain.handle(channel, (_, ...args) => handler(...args));
 };
 
 export const registerWindowIPC = (mainWindow: BrowserWindow, mcp: MCPHost) => {

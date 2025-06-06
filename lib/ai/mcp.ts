@@ -1,5 +1,6 @@
 import { Client } from '@modelcontextprotocol/sdk/client/index.js';
 import { StdioClientTransport } from '@modelcontextprotocol/sdk/client/stdio.js';
+import { ListPromptsResult, ListToolsResult } from '@modelcontextprotocol/sdk/types.js';
 
 class StdioMCPClient {
   private client: Client;
@@ -47,7 +48,7 @@ class StdioMCPClient {
     this.connected = true;
   }
 
-  async tools() {
+  async tools(): Promise<MCPTools> {
     if (!this.connected) {
       throw new Error('Transport not initialized. Call connect() first.');
     }
@@ -55,7 +56,7 @@ class StdioMCPClient {
     return response.tools;
   }
 
-  async prompts() {
+  async prompts(): Promise<MCPPrompts> {
     if (!this.connected) {
       throw new Error('Transport not initialized. Call connect() first.');
     }
@@ -81,8 +82,8 @@ class StdioMCPClient {
   }
 }
 
-export type MCPTools = Awaited<ReturnType<typeof StdioMCPClient.prototype.tools>>;
-export type MCPPrompts = Awaited<ReturnType<typeof StdioMCPClient.prototype.prompts>>;
+export type MCPTools = ListToolsResult['tools'];
+export type MCPPrompts = ListPromptsResult['prompts'];
 
 export interface MCPClientDescription {
   name: string;
