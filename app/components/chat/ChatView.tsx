@@ -42,6 +42,25 @@ export const ChatView = (props: ChatViewProps): React.JSX.Element => {
     setIncomingMessage('');
   };
 
+  const ask = () => {
+    if (agent && input.trim()) {
+      agent.ask({
+        question: input,
+        onToken,
+        onHistoryUpdate,
+      });
+      setInput('');
+    }
+  };
+
+  const onKeyDown = (e: React.KeyboardEvent<HTMLTextAreaElement>) => {
+    if (e.key === 'Enter' && !e.shiftKey) {
+      e.preventDefault();
+      e.stopPropagation();
+      ask();
+    }
+  };
+
   return (
     <div className="flex flex-col h-full w-full">
       <div className="scrollable grow flex flex-col justify-start h-full w-full p-4 gap-4">
@@ -51,27 +70,16 @@ export const ChatView = (props: ChatViewProps): React.JSX.Element => {
         {incomingMessage ? <ChatMessage message={incomingMessage} role={'assistant'} /> : null}
       </div>
 
-      <div className="flex border-t border-secondary max-h-40 p-2 gap-2">
+      <div className="flex border-t border-secondary max-h-40 p-2 gap-2 ">
         <Textarea
           placeholder="Type your message here..."
           className="w-full h-full outline-none resize-none"
           value={input}
+          onKeyDown={onKeyDown}
           onInput={(e) => setInput(e.currentTarget.value)}
         ></Textarea>
 
-        <Button
-          onClick={() => {
-            if (agent && input.trim()) {
-              agent.ask({
-                question: input,
-                onToken,
-                onHistoryUpdate,
-              });
-            }
-          }}
-        >
-          Send
-        </Button>
+        <Button onClick={ask}>Send</Button>
       </div>
     </div>
   );
