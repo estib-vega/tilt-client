@@ -46,7 +46,8 @@
     "openai": "^5.1.1",
     "tailwind-merge": "^3.3.0",
     "tw-animate-css": "^1.3.2",
-    "zod": "^3.25.55"
+    "zod": "^3.25.55",
+    "zod-to-json-schema": "^3.24.5"
   },
   "devDependencies": {
     "@electron-toolkit/eslint-config-prettier": "^3.0.0",
