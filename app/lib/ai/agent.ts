@@ -1,30 +1,85 @@
-import { Agent, run } from '@openai/agents';
+import { OpenAI } from 'openai';
 
 const DEFAULT_MODEL = 'gpt-4.1-mini';
 
-export class TiltAgent {
-  private agent: Agent;
+export interface AgentMessage {
+  role: 'user' | 'assistant';
+  content: string;
+}
 
-  constructor() {
-    this.agent = new Agent({
-      model: DEFAULT_MODEL,
-      name: 'Tilt Agent',
-      instructions: 'You are a helpful assistant that can answer questions.',
-    });
+export function isAgentMessage(message: OpenAI.Responses.ResponseInputItem): message is AgentMessage {
+  return (
+    message.type === 'message' &&
+    (message.role === 'user' || message.role === 'assistant') &&
+    typeof message.content === 'string'
+  );
+}
+
+interface AgentAskParams {
+  question: string;
+  onToken: (token: string) => void;
+  onHistoryUpdate?: (history: AgentMessage[]) => void;
+}
+
+export class TiltAgent {
+  private client: OpenAI;
+  private history: OpenAI.Responses.ResponseInputItem[] = [];
+
+  constructor(apiKey: string) {
+    this.client = new OpenAI({ apiKey, dangerouslyAllowBrowser: true });
   }
 
-  async ask(question: string, onToken: (token: string) => void): Promise<string> {
-    const result = await run(this.agent, question, {
-      stream: true,
-    });
+  async ask(params: AgentAskParams): Promise<string> {
+    const { question, onToken, onHistoryUpdate } = params;
+    try {
+      this.history.push({
+        type: 'message',
+        role: 'user',
+        content: question,
+      });
 
-    const stream = result.toTextStream();
-    let fullResponse = '';
-    for await (const token of stream) {
-      fullResponse += token;
-      onToken(token);
+      if (onHistoryUpdate) {
+        onHistoryUpdate(this.getHistory());
+      }
+
+      const result = await this.client.responses.create({
+        model: DEFAULT_MODEL,
+        input: this.history,
+        stream: true,
+      });
+
+      let fullResponse = '';
+
+      for await (const event of result) {
+        if (event.type === 'response.output_text.delta') {
+          const token = event.delta;
+          fullResponse += token;
+          onToken(token);
+        }
+      }
+
+      this.history.push({
+        type: 'message',
+        role: 'assistant',
+        content: fullResponse,
+      });
+
+      if (onHistoryUpdate) {
+        onHistoryUpdate(this.getHistory());
+      }
+
+      return fullResponse;
+    } catch (error) {
+      console.error('Error during ask:', error);
+      return '';
     }
-    return fullResponse;
+  }
+
+  getHistory(): AgentMessage[] {
+    return this.history.filter(isAgentMessage).map((item) => ({
+      role: item.role,
+      content: item.content,
+    }));
   }
 
   cleanUp(): void {
