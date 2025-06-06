@@ -54,13 +54,14 @@ export class MCPHost {
     await window.api.invoke('set-mcp-client-list', this.servers);
   }
 
-  removeClient(name: string): void {
+  async removeServer(name: string): Promise<void> {
     this.servers = this.servers.filter((client) => client.name !== name);
     writeMCPServers(this.servers);
+    await window.api.invoke('set-mcp-client-list', this.servers);
   }
 
-  async getClientsInfo(): Promise<MCPServersInfo> {
+  async getServcersInfo(): Promise<MCPServersInfo[]> {
     const clientsInfo = await window.api.invoke('get-mcp-clients-info');
-    return clientsInfo as MCPServersInfo;
+    return clientsInfo as MCPServersInfo[];
   }
 }
