@@ -11,7 +11,7 @@ export function createAppWindow(): void {
   // Create the main window.
   const mainWindow = new BrowserWindow({
     width: 900,
-    height: 670,
+    height: 900,
     show: false,
     backgroundColor: '#1c1c1c',
     icon: appIcon,
