@@ -1,11 +1,12 @@
 import { type BrowserWindow, ipcMain, shell } from 'electron';
 import os from 'os';
+import MCPHost, { MCPClientDescription } from '../ai/mcp';
 
 const handleIPC = (channel: string, handler: (...args: any[]) => void) => {
   ipcMain.handle(channel, handler);
 };
 
-export const registerWindowIPC = (mainWindow: BrowserWindow) => {
+export const registerWindowIPC = (mainWindow: BrowserWindow, mcp: MCPHost) => {
   // Hide the menu bar
   mainWindow.setMenuBarVisibility(false);
 
@@ -48,4 +49,14 @@ export const registerWindowIPC = (mainWindow: BrowserWindow) => {
   handleIPC('web-zoom-out', () => webContents.setZoomLevel(webContents.zoomLevel - 0.5));
   handleIPC('web-toggle-fullscreen', () => mainWindow.setFullScreen(!mainWindow.fullScreen));
   handleIPC('web-open-url', (_e, url) => shell.openExternal(url));
+
+  // MCP Host IPC
+  handleIPC('set-mcp-client-list', async (clients: MCPClientDescription[]) => {
+    await mcp.setStdioClients(clients);
+    await mcp.connectClients();
+  });
+
+  handleIPC('get-mcp-clients-info', async () => {
+    return mcp.getClientsInfo();
+  });
 };

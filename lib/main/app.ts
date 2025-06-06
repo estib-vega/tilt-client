@@ -3,6 +3,7 @@ import { join } from 'path';
 import { registerWindowIPC } from '@/lib/window/ipcEvents';
 import appIcon from '@/resources/build/icon.png?asset';
 import { pathToFileURL } from 'url';
+import MCPHost from '../ai/mcp';
 
 export function createAppWindow(): void {
   // Register custom protocol for resources
@@ -26,8 +27,10 @@ export function createAppWindow(): void {
     },
   });
 
+  const mcp = new MCPHost();
+
   // Register IPC events for the main window.
-  registerWindowIPC(mainWindow);
+  registerWindowIPC(mainWindow, mcp);
 
   mainWindow.on('ready-to-show', () => {
     mainWindow.show();
