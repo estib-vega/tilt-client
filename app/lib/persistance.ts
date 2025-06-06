@@ -42,10 +42,10 @@ export function readLocalStorageJson<T>(key: string, schema: z.ZodType<T>): T | 
  * This hook initializes the state from localStorage if available,
  * and provides a function to update the state and persist it.
  */
-export function usePersistedState(key: string): [string, (value: string) => void] {
+export function usePersistedState(key: string, defaultValue?: string): [string, (value: string) => void] {
   const [state, setState] = React.useState<string>(() => {
     const storedValue = readLocalStorage(key);
-    return storedValue ?? '';
+    return storedValue ?? defaultValue ?? '';
   });
 
   const setPersistedState = (value: string) => {
