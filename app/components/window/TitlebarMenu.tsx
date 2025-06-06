@@ -1,23 +1,23 @@
-import { useEffect, useRef } from 'react'
-import { useWindowContext } from '@/lib/window'
-import { useTitlebarContext } from './TitlebarContext'
+import { useEffect, useRef } from 'react';
+import { useWindowContext } from '@/lib/window';
+import { useTitlebarContext } from './TitlebarContext';
 
 /**
  * Renders the titlebar menu component.
  * Displays a list of menu items in the titlebar.
  */
 const TitlebarMenu = () => {
-  const { menuItems } = useWindowContext().titlebar
+  const { menuItems } = useWindowContext().titlebar;
 
   // If there are no menu items, hide the menu
-  if (!menuItems) return null
+  if (!menuItems) return null;
 
   return (
     <div className="window-titlebar-menu">
       {menuItems?.map((menu, index) => <TitlebarMenuItem key={index} menu={menu} index={index} />)}
     </div>
-  )
-}
+  );
+};
 
 /**
  * Renders a single menu item within the titlebar.
@@ -27,30 +27,30 @@ const TitlebarMenu = () => {
  * @param index - The index of the menu item
  */
 const TitlebarMenuItem = ({ menu, index }: { menu: TitlebarMenu; index: number }) => {
-  const { activeMenuIndex, setActiveMenuIndex } = useTitlebarContext()
-  const menuItemRef = useRef<HTMLDivElement | null>(null)
+  const { activeMenuIndex, setActiveMenuIndex } = useTitlebarContext();
+  const menuItemRef = useRef<HTMLDivElement | null>(null);
 
   const togglePopup = (e: React.MouseEvent) => {
-    e.preventDefault()
-    e.stopPropagation()
+    e.preventDefault();
+    e.stopPropagation();
 
     // Check if the current menu item is the active one
     if (activeMenuIndex === index) {
-      menuItemRef.current?.classList.remove('active')
-      setActiveMenuIndex(null)
+      menuItemRef.current?.classList.remove('active');
+      setActiveMenuIndex(null);
     }
     // If the menu item is not active, activate it
     else if (!menuItemRef.current?.classList.contains('active')) {
-      setActiveMenuIndex(index)
-      menuItemRef.current?.classList.add('active')
+      setActiveMenuIndex(index);
+      menuItemRef.current?.classList.add('active');
     }
-  }
+  };
 
   const handleMouseOver = () => {
     if (activeMenuIndex != null) {
-      setActiveMenuIndex(index)
+      setActiveMenuIndex(index);
     }
-  }
+  };
 
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
@@ -59,23 +59,23 @@ const TitlebarMenuItem = ({ menu, index }: { menu: TitlebarMenu; index: number }
         !menuItemRef.current.contains(event.target as Node) &&
         menuItemRef.current.classList.contains('active')
       ) {
-        setActiveMenuIndex(null)
+        setActiveMenuIndex(null);
       }
-    }
+    };
 
-    document.addEventListener('mousedown', handleClickOutside)
+    document.addEventListener('mousedown', handleClickOutside);
     return () => {
-      document.removeEventListener('mousedown', handleClickOutside)
-    }
-  }, [setActiveMenuIndex])
+      document.removeEventListener('mousedown', handleClickOutside);
+    };
+  }, [setActiveMenuIndex]);
 
   useEffect(() => {
     if (activeMenuIndex !== index) {
-      menuItemRef.current?.classList.remove('active')
+      menuItemRef.current?.classList.remove('active');
     } else {
-      menuItemRef.current?.classList.add('active')
+      menuItemRef.current?.classList.add('active');
     }
-  }, [activeMenuIndex, index])
+  }, [activeMenuIndex, index]);
 
   return (
     <div className="titlebar-menuItem" ref={menuItemRef}>
@@ -89,8 +89,8 @@ const TitlebarMenuItem = ({ menu, index }: { menu: TitlebarMenu; index: number }
       </div>
       {activeMenuIndex === index && <TitlebarMenuPopup menu={menu} />}
     </div>
-  )
-}
+  );
+};
 
 /**
  * Renders a popup menu containing a list of menu items.
@@ -105,8 +105,8 @@ const TitlebarMenuPopup = ({ menu }: { menu: TitlebarMenu }) => {
         <TitlebarMenuPopupItem key={index} item={item} />
       ))}
     </div>
-  )
-}
+  );
+};
 
 /**
  * Renders a single menu item within a popup menu.
@@ -115,23 +115,23 @@ const TitlebarMenuPopup = ({ menu }: { menu: TitlebarMenu }) => {
  * @param item - The menu item configuration
  */
 const TitlebarMenuPopupItem = ({ item }: { item: TitlebarMenuItem }) => {
-  const { setActiveMenuIndex } = useTitlebarContext()
+  const { setActiveMenuIndex } = useTitlebarContext();
 
   function handleAction() {
     // Check if the item has a valid action callback
     if (typeof item.actionCallback === 'function') {
-      item.actionCallback()
-      setActiveMenuIndex(null)
-      return
+      item.actionCallback();
+      setActiveMenuIndex(null);
+      return;
     }
 
     // Invoke the action with the provided parameters
-    window.api.invoke(item.action!, ...(item.actionParams ? item.actionParams : []))
-    setActiveMenuIndex(null)
+    window.api.invoke(item.action!, ...(item.actionParams ? item.actionParams : []));
+    setActiveMenuIndex(null);
   }
 
   if (item.name === '---') {
-    return <div className="menuItem-popupItem menuItem-separator" />
+    return <div className="menuItem-popupItem menuItem-separator" />;
   }
 
   return (
@@ -139,21 +139,21 @@ const TitlebarMenuPopupItem = ({ item }: { item: TitlebarMenuItem }) => {
       <div>{item.name}</div>
       {item.shortcut && <div className="menuItem-shortcut">{item.shortcut}</div>}
     </div>
-  )
-}
+  );
+};
 
 interface TitlebarMenuItem {
-  name: string
-  action?: string
-  actionParams?: (string | number | object)[]
-  shortcut?: string
-  items?: TitlebarMenuItem[]
-  actionCallback?: () => void
+  name: string;
+  action?: string;
+  actionParams?: (string | number | object)[];
+  shortcut?: string;
+  items?: TitlebarMenuItem[];
+  actionCallback?: () => void;
 }
 
 interface TitlebarMenu {
-  name: string
-  items: TitlebarMenuItem[]
+  name: string;
+  items: TitlebarMenuItem[];
 }
 
-export { TitlebarMenu, TitlebarMenuItem, TitlebarMenuPopup, TitlebarMenuPopupItem }
+export { TitlebarMenu, TitlebarMenuItem, TitlebarMenuPopup, TitlebarMenuPopupItem };

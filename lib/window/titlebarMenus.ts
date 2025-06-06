@@ -1,4 +1,4 @@
-import type { TitlebarMenu } from '@/app/components/window/TitlebarMenu'
+import type { TitlebarMenu } from '@/app/components/window/TitlebarMenu';
 
 export const menuItems: TitlebarMenu[] = [
   {
@@ -109,7 +109,7 @@ export const menuItems: TitlebarMenu[] = [
         action: 'window-darkmode-toggle',
         shortcut: 'Toggle',
         actionCallback: () => {
-          document.documentElement.classList.toggle('dark')
+          document.documentElement.classList.toggle('dark');
         },
       },
       {
@@ -143,4 +143,4 @@ export const menuItems: TitlebarMenu[] = [
       },
     ],
   },
-]
+];

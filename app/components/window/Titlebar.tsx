@@ -1,31 +1,31 @@
-import { useEffect } from 'react'
-import { useWindowContext } from './WindowContext'
-import { useTitlebarContext } from './TitlebarContext'
-import { TitlebarMenu } from './TitlebarMenu'
+import { useEffect } from 'react';
+import { useWindowContext } from './WindowContext';
+import { useTitlebarContext } from './TitlebarContext';
+import { TitlebarMenu } from './TitlebarMenu';
 
 export const Titlebar = () => {
-  const { title, icon, titleCentered, menuItems } = useWindowContext().titlebar
-  const { menusVisible, setMenusVisible, closeActiveMenu } = useTitlebarContext()
-  const wcontext = useWindowContext().window
+  const { title, icon, titleCentered, menuItems } = useWindowContext().titlebar;
+  const { menusVisible, setMenusVisible, closeActiveMenu } = useTitlebarContext();
+  const wcontext = useWindowContext().window;
 
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
       if (e.altKey && menuItems?.length) {
         // Ignore repeated keydown events
-        if (e.repeat) return
+        if (e.repeat) return;
         // Close active menu if it's open
-        if (menusVisible) closeActiveMenu()
-        setMenusVisible(!menusVisible)
+        if (menusVisible) closeActiveMenu();
+        setMenusVisible(!menusVisible);
       }
-    }
+    };
 
     // Add event listener for Alt key
-    document.addEventListener('keydown', handleKeyDown)
+    document.addEventListener('keydown', handleKeyDown);
 
     return () => {
-      document.removeEventListener('keydown', handleKeyDown)
-    }
-  }, [menusVisible, closeActiveMenu, setMenusVisible, menuItems])
+      document.removeEventListener('keydown', handleKeyDown);
+    };
+  }, [menusVisible, closeActiveMenu, setMenusVisible, menuItems]);
 
   return (
     <div className={`window-titlebar ${wcontext?.platform ? `platform-${wcontext.platform}` : ''}`}>
@@ -45,15 +45,15 @@ export const Titlebar = () => {
       {menusVisible && <TitlebarMenu />}
       {wcontext?.platform === 'win32' && <TitlebarControls />}
     </div>
-  )
-}
+  );
+};
 
 const TitlebarControls = () => {
   const closePath =
-    'M 0,0 0,0.7 4.3,5 0,9.3 0,10 0.7,10 5,5.7 9.3,10 10,10 10,9.3 5.7,5 10,0.7 10,0 9.3,0 5,4.3 0.7,0 Z'
-  const maximizePath = 'M 0,0 0,10 10,10 10,0 Z M 1,1 9,1 9,9 1,9 Z'
-  const minimizePath = 'M 0,5 10,5 10,6 0,6 Z'
-  const wcontext = useWindowContext().window
+    'M 0,0 0,0.7 4.3,5 0,9.3 0,10 0.7,10 5,5.7 9.3,10 10,10 10,9.3 5.7,5 10,0.7 10,0 9.3,0 5,4.3 0.7,0 Z';
+  const maximizePath = 'M 0,0 0,10 10,10 10,0 Z M 1,1 9,1 9,9 1,9 Z';
+  const minimizePath = 'M 0,5 10,5 10,6 0,6 Z';
+  const wcontext = useWindowContext().window;
 
   return (
     <div className="window-titlebar-controls">
@@ -61,25 +61,25 @@ const TitlebarControls = () => {
       {wcontext?.maximizable && <TitlebarControlButton label="maximize" svgPath={maximizePath} />}
       <TitlebarControlButton label="close" svgPath={closePath} />
     </div>
-  )
-}
+  );
+};
 
 const TitlebarControlButton = ({ svgPath, label }: { svgPath: string; label: string }) => {
   const handleAction = () => {
     switch (label) {
       case 'minimize':
-        window.api.invoke('window-minimize')
-        break
+        window.api.invoke('window-minimize');
+        break;
       case 'maximize':
-        window.api.invoke('window-maximize-toggle')
-        break
+        window.api.invoke('window-maximize-toggle');
+        break;
       case 'close':
-        window.api.invoke('window-close')
-        break
+        window.api.invoke('window-close');
+        break;
       default:
-        console.warn(`Unhandled action for label: ${label}`)
+        console.warn(`Unhandled action for label: ${label}`);
     }
-  }
+  };
 
   return (
     <div aria-label={label} className="titlebar-controlButton" onClick={handleAction}>
@@ -87,12 +87,12 @@ const TitlebarControlButton = ({ svgPath, label }: { svgPath: string; label: str
         <path fill="currentColor" d={svgPath} />
       </svg>
     </div>
-  )
-}
+  );
+};
 
 export interface TitlebarProps {
-  title: string
-  titleCentered?: boolean
-  icon?: string
-  menuItems?: TitlebarMenu[]
+  title: string;
+  titleCentered?: boolean;
+  icon?: string;
+  menuItems?: TitlebarMenu[];
 }

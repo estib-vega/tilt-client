@@ -2,7 +2,7 @@
 
 playing around with mcp clients
 
-## Development 
+## Development
 
 Install dependencies:
 
