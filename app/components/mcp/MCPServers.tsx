@@ -3,6 +3,7 @@ import React, { Suspense } from 'react';
 import { Button } from '../ui/button';
 import { Input } from '../ui/input';
 import { Minus, Plus } from 'lucide-react';
+import { MCPTools } from './MCPTools';
 
 interface MCPServerInfoProps {
   info: Promise<MCPServersInfo | undefined>;
@@ -16,10 +17,9 @@ const MCPServerInfo = ({ info }: MCPServerInfoProps) => {
   }
 
   return (
-    <div className="p-2 text-xs text-muted-foreground bg-background border border-accent mb-2">
-      <div>
-        <strong>Tools:</strong>{' '}
-        {resolvedInfo.tools.length > 0 ? resolvedInfo.tools.map((tool) => tool.name).join(', ') : 'None'}
+    <div className="p-2 text-xs text-muted-foreground bg-background border border-accent mb-2 rounded-sm">
+      <div className="flex flex-col gap-1">
+        <strong>Tools:</strong> <MCPTools tools={resolvedInfo.tools} />
       </div>
       <div>
         <strong>Prompts:</strong>{' '}
