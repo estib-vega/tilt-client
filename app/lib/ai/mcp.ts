@@ -10,7 +10,7 @@ const MCPServerDescriptionSchema = z.object({
   args: z.array(z.string()),
 });
 
-type MCPServerDescription = z.infer<typeof MCPServerDescriptionSchema>;
+export type MCPServerDescription = z.infer<typeof MCPServerDescriptionSchema>;
 
 export interface MCPServersInfo extends MCPServerDescription {
   tools: MCPTools;
@@ -28,6 +28,7 @@ function getMCPServers(): MCPServerDescription[] {
 
 export class MCPHost {
   private servers: MCPServerDescription[];
+  private isInitialized = false;
 
   constructor() {
     this.servers = getMCPServers();
@@ -39,6 +40,11 @@ export class MCPHost {
 
   async init() {
     await window.api.invoke('set-mcp-client-list', this.servers);
+    this.isInitialized = true;
+  }
+
+  ready(): boolean {
+    return this.isInitialized;
   }
 
   async upsertClient(client: MCPServerDescription): Promise<void> {
@@ -63,5 +69,10 @@ export class MCPHost {
   async getServcersInfo(): Promise<MCPServersInfo[]> {
     const clientsInfo = await window.api.invoke('get-mcp-clients-info');
     return clientsInfo as MCPServersInfo[];
+  }
+
+  async getServerInfoByName(name: string): Promise<MCPServersInfo | undefined> {
+    const clientsInfo = await window.api.invoke('get-mcp-client-info-by-name', name);
+    return clientsInfo as MCPServersInfo | undefined;
   }
 }

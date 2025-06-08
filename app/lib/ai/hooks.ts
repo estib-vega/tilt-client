@@ -49,7 +49,7 @@ export function useMCPHost(): MCPHost | null {
     };
   }, []);
 
-  return mcpHostRef.current;
+  return mcpHostRef.current?.ready() ? mcpHostRef.current : null;
 }
 
 const API_KEY_STORARGE_KEY = 'apiKey';

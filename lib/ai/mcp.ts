@@ -130,6 +130,25 @@ export default class MCPHost {
     await Promise.allSettled(Array.from(this.stdioClients.values()).map((client) => client.connect()));
   }
 
+  async getClientInfo(name: string): Promise<MCPClientInfo | undefined> {
+    const client = this.stdioClients.get(name);
+    if (!client) {
+      console.warn(`Client with name "${name}" not found.`);
+      return undefined;
+    }
+
+    const tools = await client.tools();
+    const prompts = []; //await client.prompts();
+
+    return {
+      name: client.name,
+      command: client.getCommand(),
+      args: client.getArgs(),
+      tools,
+      prompts,
+    };
+  }
+
   async getClientsInfo(): Promise<MCPClientInfo[]> {
     const results = await Promise.allSettled(
       Array.from(this.stdioClients.values()).map(async (client): Promise<MCPClientInfo> => {

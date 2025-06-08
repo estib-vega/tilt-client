@@ -59,4 +59,8 @@ export const registerWindowIPC = (mainWindow: BrowserWindow, mcp: MCPHost) => {
   handleIPC('get-mcp-clients-info', async () => {
     return mcp.getClientsInfo();
   });
+
+  handleIPC('get-mcp-client-info-by-name', async (name: string) => {
+    return mcp.getClientInfo(name);
+  });
 };

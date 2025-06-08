@@ -3,7 +3,7 @@ import { InputWithLabel } from '../generics/InputWithLabel';
 import { Button } from '../ui/button';
 import { Label } from '../ui/label';
 import { Separator } from '../ui/separator';
-import { MCPHost } from '@/app/lib/ai/mcp';
+import { MCPHost, MCPServerDescription, MCPServersInfo } from '@/app/lib/ai/mcp';
 import {
   Dialog,
   DialogClose,
@@ -14,7 +14,61 @@ import {
   DialogTitle,
   DialogTrigger,
 } from '../ui/dialog';
-import React from 'react';
+import React, { Suspense } from 'react';
+
+interface MCPServerInfoProps {
+  info: Promise<MCPServersInfo | undefined>;
+}
+
+const MCPServerInfo = ({ info }: MCPServerInfoProps) => {
+  const resolvedInfo = React.use(info);
+
+  if (!resolvedInfo) {
+    return <div className="text-muted-foreground">No server info available</div>;
+  }
+
+  return (
+    <div className="p-2 text-xs text-muted-foreground bg-background border mb-2">
+      <div>
+        <strong>Tools:</strong>{' '}
+        {resolvedInfo.tools.length > 0 ? resolvedInfo.tools.map((tool) => tool.name).join(', ') : 'None'}
+      </div>
+      <div>
+        <strong>Prompts:</strong>{' '}
+        {resolvedInfo.prompts.length > 0 ? resolvedInfo.prompts.map((prompt) => prompt.name).join(', ') : 'None'}
+      </div>
+    </div>
+  );
+};
+
+interface MCPServerProps {
+  mcpHost: MCPHost | null;
+  server: MCPServerDescription;
+  remove: () => void;
+}
+
+const MCPServer = ({ server, remove, mcpHost }: MCPServerProps) => {
+  const info = React.useMemo(() => mcpHost?.getServerInfoByName(server.name), [mcpHost, server.name]);
+
+  return (
+    <div className="flex flex-col gap-2">
+      <div className="bg-accent flex items-center justify-between p-2">
+        <span>{server.name}</span>
+        <span className="text-xs text-muted-foreground select-text">
+          {server.command} {server.args.join(' ')}
+        </span>
+        <Button variant="ghost" size="sm" onClick={remove}>
+          Remove
+        </Button>
+      </div>
+      {info && (
+        <Suspense fallback={<div className="text-muted-foreground">Loading server info...</div>}>
+          <MCPServerInfo info={info} />
+        </Suspense>
+      )}
+    </div>
+  );
+};
 
 interface MCPServersProps {
   mcpHost: MCPHost | null;
@@ -45,17 +99,9 @@ const MCPServers = ({ mcpHost, flushUpdate }: MCPServersProps) => {
   };
 
   return (
-    <div className="bg-accent rounded-sm">
-      {mcpHost.getServerList().map((server) => (
-        <div key={server.name} className="flex items-center justify-between p-2">
-          <span>{server.name}</span>
-          <span className="text-xs text-muted-foreground select-text">
-            {server.command} {server.args.join(' ')}
-          </span>
-          <Button variant="ghost" size="sm" onClick={() => remove(server.name)}>
-            Remove
-          </Button>
-        </div>
+    <div className="rounded-sm overflow-hidden">
+      {servers.map((server) => (
+        <MCPServer key={server.name} mcpHost={mcpHost} server={server} remove={() => remove(server.name)} />
       ))}
     </div>
   );
