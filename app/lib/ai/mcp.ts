@@ -8,6 +8,7 @@ const MCPServerDescriptionSchema = z.object({
   name: z.string(),
   command: z.string(),
   args: z.array(z.string()),
+  env: z.record(z.string()).optional(),
 });
 
 export type MCPServerDescription = z.infer<typeof MCPServerDescriptionSchema>;
