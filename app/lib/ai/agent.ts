@@ -97,7 +97,7 @@ export class TiltAgent {
           name: encodeMCPToolName(server.name, tool.name),
           description: tool.description,
           parameters: tool.inputSchema,
-          strict: true,
+          strict: false,
         });
       }
     }

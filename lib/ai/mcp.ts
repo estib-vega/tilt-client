@@ -154,45 +154,39 @@ export default class MCPHost {
   }
 
   async connectClients(): Promise<void> {
-    await Promise.all(Array.from(this.stdioClients.values()).map((client) => client.connect()));
+    await Promise.allSettled(Array.from(this.stdioClients.values()).map((client) => client.connect()));
   }
 
   async getClientInfo(name: string): Promise<MCPClientInfo | undefined> {
     const client = this.stdioClients.get(name);
     if (!client) {
-      console.warn(`Client with name "${name}" not found.`);
+      logMCP(`Client with name "${name}" not found.`);
       return undefined;
     }
 
-    const tools = await client.tools();
-    const prompts = []; //await client.prompts();
+    try {
+      const tools = await client.tools();
+      const prompts = []; //await client.prompts();
 
-    return {
-      name: client.name,
-      command: client.getCommand(),
-      args: client.getArgs(),
-      tools,
-      prompts,
-    };
+      return {
+        name: client.name,
+        command: client.getCommand(),
+        args: client.getArgs(),
+        tools,
+        prompts,
+      };
+    } catch (error) {
+      logMCP(`Failed to get info for client "${name}":`, error);
+      return undefined;
+    }
   }
 
   async getClientsInfo(): Promise<MCPClientInfo[]> {
-    const stdioClients = Array.from(this.stdioClients.values());
+    const stdioClients = Array.from(this.stdioClients.keys());
     logMCP(`Getting info for ${stdioClients.length} MCP clients`);
 
     const results = await Promise.allSettled(
-      stdioClients.map(async (client): Promise<MCPClientInfo> => {
-        const tools = await client.tools();
-        const prompts = []; //await client.prompts();
-
-        return {
-          name: client.name,
-          command: client.getCommand(),
-          args: client.getArgs(),
-          tools,
-          prompts,
-        };
-      })
+      stdioClients.map(async (clientName): Promise<MCPClientInfo | undefined> => this.getClientInfo(clientName))
     );
 
     return results
