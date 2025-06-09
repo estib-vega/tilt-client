@@ -5,6 +5,7 @@ import {
   CallToolResultSchema,
   ListPromptsResult,
   ListToolsResult,
+  ServerCapabilities,
 } from '@modelcontextprotocol/sdk/types.js';
 import { z } from 'zod';
 
@@ -17,6 +18,7 @@ class StdioMCPClient {
   private transport: StdioClientTransport;
   private connected: boolean;
   private env: Record<string, string>;
+  private capabilities: ServerCapabilities | undefined;
 
   constructor(
     public name: string,
@@ -56,6 +58,7 @@ class StdioMCPClient {
     if (this.connected) return;
 
     await this.client.connect(this.transport);
+    this.capabilities = this.client.getServerCapabilities();
     this.connected = true;
   }
 
@@ -77,23 +80,40 @@ class StdioMCPClient {
     });
 
     await this.client.connect(this.transport);
+    this.capabilities = this.client.getServerCapabilities();
     this.connected = true;
   }
 
   async tools(): Promise<MCPTools> {
+    if (this.capabilities?.tools === undefined) return [];
+
     if (!this.connected) {
       throw new Error('Transport not initialized. Call connect() first.');
     }
-    const response = await this.client.listTools();
-    return response.tools;
+
+    try {
+      const response = await this.client.listTools();
+      return response.tools;
+    } catch (error) {
+      logMCP(`Failed to list tools for client "${this.name}":`, error);
+      return [];
+    }
   }
 
   async prompts(): Promise<MCPPrompts> {
+    if (this.capabilities?.prompts === undefined) return [];
+
     if (!this.connected) {
       throw new Error('Transport not initialized. Call connect() first.');
     }
-    const response = await this.client.listPrompts();
-    return response.prompts;
+
+    try {
+      const response = await this.client.listPrompts();
+      return response.prompts;
+    } catch (error) {
+      logMCP(`Failed to list prompts for client "${this.name}":`, error);
+      return [];
+    }
   }
 
   async callTool(toolName: string, args: Record<string, unknown>): Promise<CallToolResult> {
@@ -180,7 +200,7 @@ export default class MCPHost {
 
     try {
       const tools = await client.tools();
-      const prompts = []; //await client.prompts();
+      const prompts = await client.prompts();
 
       return {
         name: client.name,

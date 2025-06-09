@@ -4,6 +4,7 @@ import { Button } from '../ui/button';
 import { Input } from '../ui/input';
 import { Minus, Plus } from 'lucide-react';
 import { MCPTools } from './MCPTools';
+import { MCPPrompts } from './MCPPrompts';
 
 interface MCPServerInfoProps {
   info: Promise<MCPServersInfo | undefined>;
@@ -22,8 +23,7 @@ const MCPServerInfo = ({ info }: MCPServerInfoProps) => {
         <strong>Tools:</strong> <MCPTools tools={resolvedInfo.tools} />
       </div>
       <div>
-        <strong>Prompts:</strong>{' '}
-        {resolvedInfo.prompts.length > 0 ? resolvedInfo.prompts.map((prompt) => prompt.name).join(', ') : 'None'}
+        <strong>Prompts:</strong> <MCPPrompts prompts={resolvedInfo.prompts} />
       </div>
     </div>
   );
