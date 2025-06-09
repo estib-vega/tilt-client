@@ -1,6 +1,12 @@
 import { Client } from '@modelcontextprotocol/sdk/client/index.js';
 import { StdioClientTransport } from '@modelcontextprotocol/sdk/client/stdio.js';
-import { ListPromptsResult, ListToolsResult } from '@modelcontextprotocol/sdk/types.js';
+import {
+  CallToolResult,
+  CallToolResultSchema,
+  ListPromptsResult,
+  ListToolsResult,
+} from '@modelcontextprotocol/sdk/types.js';
+import { z } from 'zod';
 
 function logMCP(...args: unknown[]): void {
   // eslint-disable-next-line no-console
@@ -90,14 +96,16 @@ class StdioMCPClient {
     return response.prompts;
   }
 
-  async callTool(toolName: string, args: Record<string, unknown>) {
+  async callTool(toolName: string, args: Record<string, unknown>): Promise<CallToolResult> {
     if (!this.connected) {
       throw new Error('Transport not initialized. Call connect() first.');
     }
-    return this.client.callTool({
+    const response = await this.client.callTool({
       name: toolName,
       arguments: args,
     });
+
+    return CallToolResultSchema.parse(response);
   }
 
   async close() {
@@ -123,6 +131,12 @@ export interface MCPClientInfo extends MCPClientDescription {
   prompts: MCPPrompts;
 }
 
+export interface MCPToolResponse {
+  isError?: boolean;
+  content: (string | Record<string, unknown>)[];
+}
+
+const UnknownRecordSchema = z.record(z.unknown());
 export default class MCPHost {
   private stdioClients: Map<string, StdioMCPClient>;
 
@@ -200,11 +214,38 @@ export default class MCPHost {
       .filter((result) => result !== undefined);
   }
 
-  async callTool(serverName: string, toolName: string, args: Record<string, unknown>): Promise<unknown> {
+  async callTool(serverName: string, toolName: string, args: Record<string, unknown>): Promise<MCPToolResponse> {
     const client = this.stdioClients.get(serverName);
     if (!client) {
       throw new Error(`Client with name "${serverName}" not found.`);
     }
-    return client.callTool(toolName, args);
+    const response = await client.callTool(toolName, args);
+
+    const content = response.content
+      .map((item) => {
+        switch (item.type) {
+          case 'text': {
+            const text = item.text;
+            try {
+              const parsed = JSON.parse(text);
+              const schemaParsed = UnknownRecordSchema.parse(parsed);
+              return schemaParsed;
+            } catch {
+              return text;
+            }
+          }
+          case 'image':
+          case 'resource':
+          case 'audio':
+            // TODO: Handle other content
+            return null;
+        }
+      })
+      .filter((item): item is string | Record<string, unknown> => item !== null);
+
+    return {
+      isError: response.isError,
+      content,
+    };
   }
 }
