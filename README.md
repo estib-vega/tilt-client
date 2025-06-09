@@ -3,6 +3,8 @@
 Tilt is an Agent chat.
 It is also an MCP host, so you can attach the agent to an MCP server if you wish so.
 
+![Tilt Desktop App](./docs/resources/agent-call.gif)
+
 ## Stack
 
 This is written in Electron + React.
@@ -16,6 +18,15 @@ Currently, this only supports Open AI, but in the future I plan to make it LLM-p
 This is a personal project, but based on the template published the great guasam [here](https://github.com/guasam/electron-react-app)
 
 Go and star his repository!
+
+## Adding MCP servers
+
+Currently, the application supports only StdIO MCP servers.
+
+In order to add one, click on the gear at the top and then 'Add MCP Server'.
+You might need to reload the app to see the tools
+
+![Settings](./docs/resources/mcp-config.gif)
 
 ## Development
 
