@@ -1,6 +1,21 @@
 # tilt desktop app
 
-playing around with mcp clients
+Tilt is an Agent chat.
+It is also an MCP host, so you can attach the agent to an MCP server if you wish so.
+
+## Stack
+
+This is written in Electron + React.
+
+Using Tailwind and Shadcn for the component styling.
+
+Currently, this only supports Open AI, but in the future I plan to make it LLM-provider agnostic.
+
+## Credits
+
+This is a personal project, but based on the template published the great guasam [here](https://github.com/guasam/electron-react-app)
+
+Go and star his repository!
 
 ## Development
 
@@ -75,8 +90,7 @@ const Button = () => (
 │   ├── preload/                # Preload scripts for IPC
 │   │   ├── index.ts            # Preload script entry
 │   │   └── api.ts              # Exposed API for renderer
-│   ├── welcome/                # Welcome kit components
-│   └── window/                 # Custom window implementation
+│   └── welcome/                # Welcome kit components
 ├── resources/                  # Build resources
 ├── .eslintrc                   # ESLint configuration
 ├── .prettierrc                 # Prettier format configuration
