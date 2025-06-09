@@ -29,8 +29,8 @@ export default function App() {
   const [apiKey, setApiKey] = useApiKey();
 
   return (
-    <div className="flex flex-col h-full w-full bg-background">
-      <div className="flex gap-4 items-center justify-end p-1 sticky top-0 border-b border-secondary bg-background">
+    <div className="flex flex-col h-full w-full bg-background min-w-0">
+      <div className="flex gap-4 items-center justify-end p-1 sticky top-0 border-b border-secondary bg-background min-w-0">
         <Button
           className="cursor-opinter"
           disabled={navigation.page === 'chat'}

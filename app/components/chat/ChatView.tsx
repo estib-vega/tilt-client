@@ -4,6 +4,7 @@ import { useAgent } from '@/app/lib/ai/hooks';
 import React from 'react';
 import { ChatEvent } from '@/app/lib/ai/agent';
 import { ChatMessage, Event } from './Event';
+import { ScrollArea } from '../ui/scroll-area';
 
 interface ChatViewProps {
   apiKey: string | undefined;
@@ -48,15 +49,16 @@ export const ChatView = (props: ChatViewProps): React.JSX.Element => {
   };
 
   return (
-    <div className="flex flex-col h-full w-full">
-      <div className="scrollable grow flex flex-col justify-start h-full w-full p-4 gap-4">
+    <div className="flex flex-col h-full w-full min-w-0 relative">
+      <ScrollArea className="h-full w-full rounded-md p-4">
         {events.map((event, index) => (
           <Event key={index} event={event} />
         ))}
         {incomingMessage ? <ChatMessage message={incomingMessage} role={'assistant'} /> : null}
-      </div>
+        <div className="h-[70vh] w-full flex-shrink-0">{/* empty trail */}</div>
+      </ScrollArea>
 
-      <div className="flex border-t border-secondary max-h-40 p-2 gap-2 ">
+      <div className="flex fixed bottom-0 border-t border-secondary w-full p-2 gap-2 shrink-0 z-10 bg-background">
         <Textarea
           placeholder="Type your message here..."
           className="w-full h-full outline-none resize-none"

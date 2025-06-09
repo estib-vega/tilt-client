@@ -1,5 +1,6 @@
 import { InputWithLabel } from '../generics/InputWithLabel';
 import { MCPSettings } from '../mcp/MCPSettings';
+import { ScrollArea } from '../ui/scroll-area';
 import { Separator } from '../ui/separator';
 import React from 'react';
 interface SettingsViewProps {
@@ -9,7 +10,7 @@ interface SettingsViewProps {
 
 export const SettingsView = (props: SettingsViewProps): React.JSX.Element => {
   return (
-    <div className=" h-full w-full p-4">
+    <ScrollArea className=" h-full w-full p-4">
       <h1 className="text-2xl mb-16">Settings</h1>
 
       <InputWithLabel
@@ -28,6 +29,8 @@ export const SettingsView = (props: SettingsViewProps): React.JSX.Element => {
       <Separator className="my-8" />
 
       <MCPSettings />
-    </div>
+
+      <div className="h-[70vh] w-full flex-shrink-0">{/* empty trail */}</div>
+    </ScrollArea>
   );
 };
