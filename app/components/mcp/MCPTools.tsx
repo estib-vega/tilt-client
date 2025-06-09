@@ -14,9 +14,9 @@ export const MCPTools = ({ tools }: MCPToolsProps) => {
   return (
     <div className="flex flex-wrap gap-1 text-xs text-muted-foreground bg-background mb-2">
       {tools.map((tool) => (
-        <Tooltip>
+        <Tooltip key={tool.name}>
           <TooltipTrigger asChild>
-            <Button className="text-xs bg-accent" size="sm" variant="ghost" key={tool.name}>
+            <Button className="text-xs bg-accent" size="sm" variant="ghost">
               {tool.name}
             </Button>
           </TooltipTrigger>
