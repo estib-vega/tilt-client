@@ -12,7 +12,7 @@ interface FailedCallResult {
   error: string;
 }
 
-type CallResult<T> = SuccessfulCallResult<T> | FailedCallResult;
+export type CallResult<T> = SuccessfulCallResult<T> | FailedCallResult;
 
 export default class Tool<T extends z.AnyZodObject, O extends z.AnyZodObject> {
   constructor(

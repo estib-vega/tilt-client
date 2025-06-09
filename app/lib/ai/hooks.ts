@@ -16,7 +16,9 @@ export function useAgent(apiKey: string | undefined): TiltAgent | null {
   React.useEffect(() => {
     if (!agentRef.current && apiKey) {
       agentRef.current = new TiltAgent(apiKey);
-      flushUpdate();
+      agentRef.current.init().then(() => {
+        flushUpdate();
+      });
     }
     return () => {
       agentRef.current?.cleanUp();
@@ -24,7 +26,7 @@ export function useAgent(apiKey: string | undefined): TiltAgent | null {
     };
   }, [apiKey]);
 
-  return agentRef.current;
+  return agentRef.current?.ready() ? agentRef.current : null;
 }
 
 /**
@@ -39,7 +41,7 @@ export function useMCPHost(): MCPHost | null {
 
   React.useEffect(() => {
     if (!mcpHostRef.current) {
-      mcpHostRef.current = new MCPHost();
+      mcpHostRef.current = MCPHost.getInstance();
       mcpHostRef.current.init().then(() => {
         flushUpdate();
       });

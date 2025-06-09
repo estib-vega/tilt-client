@@ -177,10 +177,13 @@ export default class MCPHost {
   }
 
   async getClientsInfo(): Promise<MCPClientInfo[]> {
+    const stdioClients = Array.from(this.stdioClients.values());
+    logMCP(`Getting info for ${stdioClients.length} MCP clients`);
+
     const results = await Promise.allSettled(
-      Array.from(this.stdioClients.values()).map(async (client): Promise<MCPClientInfo> => {
+      stdioClients.map(async (client): Promise<MCPClientInfo> => {
         const tools = await client.tools();
-        const prompts = await client.prompts();
+        const prompts = []; //await client.prompts();
 
         return {
           name: client.name,
@@ -200,7 +203,14 @@ export default class MCPHost {
         }
         return result.value;
       })
-      .filter((result) => result !== undefined)
-      .map((info) => info);
+      .filter((result) => result !== undefined);
+  }
+
+  async callTool(serverName: string, toolName: string, args: Record<string, unknown>): Promise<unknown> {
+    const client = this.stdioClients.get(serverName);
+    if (!client) {
+      throw new Error(`Client with name "${serverName}" not found.`);
+    }
+    return client.callTool(toolName, args);
   }
 }

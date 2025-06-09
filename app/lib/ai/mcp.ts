@@ -1,6 +1,7 @@
 import { readLocalStorageJson, writeLocalStorageJson } from '../persistance';
 import { z } from 'zod';
 import { MCPTools, MCPPrompts } from '@/lib/ai/mcp';
+import { CallResult } from './tools/tool';
 
 const MCP_CLIENTS_SERVERS = 'mcp-clients-servers';
 
@@ -30,9 +31,17 @@ function getMCPServers(): MCPServerDescription[] {
 export class MCPHost {
   private servers: MCPServerDescription[];
   private isInitialized = false;
+  private static instance: MCPHost;
 
-  constructor() {
+  private constructor() {
     this.servers = getMCPServers();
+  }
+
+  static getInstance(): MCPHost {
+    if (!MCPHost.instance) {
+      MCPHost.instance = new MCPHost();
+    }
+    return MCPHost.instance;
   }
 
   getServerList(): MCPServerDescription[] {
@@ -40,6 +49,7 @@ export class MCPHost {
   }
 
   async init() {
+    if (this.isInitialized) return;
     await window.api.invoke('set-mcp-client-list', this.servers);
     this.isInitialized = true;
   }
@@ -75,5 +85,20 @@ export class MCPHost {
   async getServerInfoByName(name: string): Promise<MCPServersInfo | undefined> {
     const clientsInfo = await window.api.invoke('get-mcp-client-info-by-name', name);
     return clientsInfo as MCPServersInfo | undefined;
+  }
+
+  async callTool(serverName: string, toolName: string, args: Record<string, unknown>): Promise<CallResult<unknown>> {
+    try {
+      const data: unknown = await window.api.invoke('call-tool', serverName, toolName, args);
+      return {
+        success: true,
+        result: data,
+      };
+    } catch (error) {
+      return {
+        success: false,
+        error: `Failed to call tool ${toolName} on server ${serverName}: ${error instanceof Error ? error.message : String(error)}`,
+      };
+    }
   }
 }
