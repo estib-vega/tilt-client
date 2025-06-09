@@ -1,9 +1,9 @@
-import Markdown from 'react-markdown';
 import { ChatEvent } from '@/app/lib/ai/agent';
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '../ui/collapsible';
 import { Button } from '../ui/button';
 import { ChevronDown, ChevronUp } from 'lucide-react';
 import React from 'react';
+import { MD } from '../markdown/MD';
 
 interface ChatMessageProps {
   role: 'user' | 'assistant';
@@ -14,7 +14,7 @@ export const ChatMessage: React.FC<ChatMessageProps> = ({ message, role }) => {
   return (
     <div className={'flex grow-0 min-w-0' + (role === 'user' ? ' justify-end pl-20' : ' justify-start pr-20')}>
       <div className="grow-0 mb-2 p-2 rounded bg-secondary shadow-sm">
-        <Markdown>{message}</Markdown>
+        <MD>{message}</MD>
       </div>
     </div>
   );
@@ -40,7 +40,7 @@ const ToolCallEvent: React.FC<ToolCallEventProps> = ({ mcpServerName, functionNa
         <div className="flex flex-col gap-2 items-start w-full">
           <div className="flex gap-2 w-full">
             <div className="grow-0 mb-2 p-2 rounded bg-secondary shadow-sm">
-              <Markdown>{message}</Markdown>
+              <MD>{message}</MD>
             </div>
             <CollapsibleTrigger asChild>
               <Button variant="ghost" size="sm">
@@ -77,7 +77,7 @@ const ToolCallOutputEvent: React.FC<ToolCallOutputEventProps> = ({ output }) => 
         <div className="flex flex-col gap-2 items-start w-full">
           <div className="flex gap-2 w-full">
             <div className="grow-0 mb-2 p-2 rounded bg-secondary shadow-sm">
-              <Markdown>{`**Tool output**`}</Markdown>
+              <MD>{`**Tool output**`}</MD>
             </div>
             <CollapsibleTrigger asChild>
               <Button variant="ghost" size="sm">
