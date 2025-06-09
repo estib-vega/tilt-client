@@ -5,10 +5,35 @@ import { z } from 'zod';
 
 const DEFAULT_MODEL = 'gpt-4.1-mini';
 
-export interface AgentMessage {
+interface BaseChatEvent {
+  type: 'message' | 'tool-call' | 'tool-call-output' | 'mcp-tool-call' | 'mcp-tool-call-output';
+}
+
+interface AgentMessage extends BaseChatEvent {
+  type: 'message';
   role: 'user' | 'assistant';
   content: string;
 }
+
+interface ToolCall extends BaseChatEvent {
+  type: 'tool-call';
+  functionName: string;
+  arguments: string;
+}
+
+interface ToolCallOutput extends BaseChatEvent {
+  type: 'tool-call-output';
+  output: string;
+}
+
+interface MCPToolCall extends BaseChatEvent {
+  type: 'mcp-tool-call';
+  serverName: string;
+  toolName: string;
+  arguments: string;
+}
+
+export type ChatEvent = AgentMessage | ToolCall | ToolCallOutput | MCPToolCall;
 
 export function isAgentMessage(message: OpenAI.Responses.ResponseInputItem): message is AgentMessage {
   return (
@@ -19,6 +44,10 @@ export function isAgentMessage(message: OpenAI.Responses.ResponseInputItem): mes
 }
 
 const SEPARATOR = '_---_';
+
+function isEncodedMCPToolName(name: string): boolean {
+  return name.includes(SEPARATOR) && name.split(SEPARATOR).length === 2;
+}
 
 function encodeMCPToolName(serverName: string, toolName: string): string {
   return `${serverName}${SEPARATOR}${toolName}`;
@@ -50,7 +79,7 @@ function parseUnknownRecord(data: string): Record<string, unknown> {
 interface AgentAskParams {
   question: string;
   onToken: (token: string) => void;
-  onHistoryUpdate?: (history: AgentMessage[]) => void;
+  onChatEvent?: (events: ChatEvent[]) => void;
 }
 
 export class TiltAgent {
@@ -139,16 +168,16 @@ export class TiltAgent {
     });
   }
 
-  private updateHistory(item: OpenAI.Responses.ResponseInputItem, cb?: (history: AgentMessage[]) => void) {
+  private updateHistory(item: OpenAI.Responses.ResponseInputItem, cb?: (events: ChatEvent[]) => void) {
     this.history.push(item);
     if (cb) {
-      const filteredHistory = this.getHistory();
+      const filteredHistory = this.getEvents();
       cb(filteredHistory);
     }
   }
 
   async ask(params: AgentAskParams): Promise<string> {
-    const { question, onToken, onHistoryUpdate } = params;
+    const { question, onToken, onChatEvent } = params;
     try {
       this.updateHistory(
         {
@@ -156,20 +185,17 @@ export class TiltAgent {
           role: 'user',
           content: question,
         },
-        onHistoryUpdate
+        onChatEvent
       );
 
-      return await this.streamResponseHandler(onToken, onHistoryUpdate);
+      return await this.streamResponseHandler(onToken, onChatEvent);
     } catch (error) {
       console.error('Error during ask:', error);
       return '';
     }
   }
 
-  private async streamResponseHandler(
-    onToken: (token: string) => void,
-    onHistoryUpdate: ((history: AgentMessage[]) => void) | undefined
-  ) {
+  private async streamResponseHandler(onToken: (token: string) => void, onChatEvent?: (events: ChatEvent[]) => void) {
     const result = await this.createResponse();
 
     let fullResponse = '';
@@ -184,7 +210,7 @@ export class TiltAgent {
 
       if (event.type === 'response.output_item.done') {
         if (event.item.type === 'function_call') {
-          this.updateHistory(event.item, onHistoryUpdate);
+          this.updateHistory(event.item, onChatEvent);
 
           const response = await this.callTool(event.item.name, event.item.arguments);
           const data = response.success ? JSON.stringify(response.result, null, 2) : response.error;
@@ -195,10 +221,10 @@ export class TiltAgent {
               call_id: event.item.call_id,
               output: data,
             },
-            onHistoryUpdate
+            onChatEvent
           );
 
-          return this.streamResponseHandler(onToken, onHistoryUpdate);
+          return this.streamResponseHandler(onToken, onChatEvent);
         }
       }
     }
@@ -209,17 +235,53 @@ export class TiltAgent {
         role: 'assistant',
         content: fullResponse,
       },
-      onHistoryUpdate
+      onChatEvent
     );
 
     return fullResponse;
   }
 
-  getHistory(): AgentMessage[] {
-    return this.history.filter(isAgentMessage).map((item) => ({
-      role: item.role,
-      content: item.content,
-    }));
+  getEvents(): ChatEvent[] {
+    const events: ChatEvent[] = [];
+    for (const item of this.history) {
+      switch (item.type) {
+        case 'message':
+          if (isAgentMessage(item)) {
+            events.push({
+              type: 'message',
+              role: item.role,
+              content: item.content,
+            });
+          }
+          break;
+        case 'function_call': {
+          if (isEncodedMCPToolName(item.name)) {
+            const { serverName, toolName } = decodeMCPToolName(item.name);
+            events.push({
+              type: 'mcp-tool-call',
+              serverName,
+              toolName,
+              arguments: item.arguments,
+            });
+            break;
+          }
+
+          events.push({
+            type: 'tool-call',
+            functionName: item.name,
+            arguments: item.arguments,
+          });
+          break;
+        }
+        case 'function_call_output':
+          events.push({
+            type: 'tool-call-output',
+            output: item.output,
+          });
+          break;
+      }
+    }
+    return events;
   }
 
   cleanUp(): void {
